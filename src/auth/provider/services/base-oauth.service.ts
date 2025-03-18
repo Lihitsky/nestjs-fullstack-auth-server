@@ -46,8 +46,8 @@ export class BaseOAuthService {
 		const query = new URLSearchParams({
 			response_type: 'code',
 			client_id: this.options.client_id,
-			redirect_url: this.getRedirectUrl(),
-			scopes: (this.options.scopes || []).join(' '),
+			redirect_uri: this.getRedirectUrl(),
+			scope: (this.options.scopes ?? []).join(' '),
 			access_type: 'offline',
 			prompt: 'select_account'
 		})
@@ -70,20 +70,18 @@ export class BaseOAuthService {
 			client_id,
 			client_secret,
 			code,
-			grant_type: 'authorization_code',
-			redirect_uri: this.getRedirectUrl()
+			redirect_uri: this.getRedirectUrl(),
+			grant_type: 'authorization_code'
 		})
 
 		const tokenRequest = await fetch(this.options.access_url, {
 			method: 'POST',
 			body: tokenQuery,
 			headers: {
-				'Content-type': 'application/x-www-form-urlencoded',
+				'Content-Type': 'application/x-www-form-urlencoded',
 				Accept: 'application/json'
 			}
 		})
-
-		const tokenResponse = await tokenRequest.json()
 
 		if (!tokenRequest.ok) {
 			throw new BadRequestException(
@@ -91,7 +89,9 @@ export class BaseOAuthService {
 			)
 		}
 
-		if (!tokenResponse.access_token) {
+		const tokens = await tokenRequest.json()
+
+		if (!tokens.access_token) {
 			throw new BadRequestException(
 				`No tokens found at ${this.options.access_url}. Make sure that the authorisation code is valid.`
 			)
@@ -99,7 +99,7 @@ export class BaseOAuthService {
 
 		const userRequest = await fetch(this.options.profile_url, {
 			headers: {
-				Authorization: `Bearer ${tokenResponse.access_token}`
+				Authorization: `Bearer ${tokens.access_token}`
 			}
 		})
 
@@ -114,9 +114,9 @@ export class BaseOAuthService {
 
 		return {
 			...userData,
-			access_token: tokenResponse.access_token,
-			refresh_token: tokenResponse.refresh_token,
-			expires_at: tokenResponse.expires_at || tokenResponse.expires_in,
+			access_token: tokens.access_token,
+			refresh_token: tokens.refresh_token,
+			expires_at: tokens.expires_at || tokens.expires_in,
 			provider: this.options.name
 		}
 	}
