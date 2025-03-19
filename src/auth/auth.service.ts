@@ -15,6 +15,7 @@ import { UserService } from '@/user/user.service'
 
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
+import { EmailConfirmationService } from './email-confirmation/email-confirmation.service'
 import { ProviderService } from './provider/provider.service'
 
 @Injectable()
@@ -23,7 +24,8 @@ export class AuthService {
 		private readonly prismaService: PrismaService,
 		private readonly userService: UserService,
 		private readonly configService: ConfigService,
-		private readonly providerService: ProviderService
+		private readonly providerService: ProviderService,
+		private readonly emailConfirmationService: EmailConfirmationService
 	) {}
 
 	public async register(req: Request, dto: RegisterDto) {
@@ -42,7 +44,12 @@ export class AuthService {
 			false
 		)
 
-		return this.saveSession(req, newUser)
+		await this.emailConfirmationService.sendVerificationToken(newUser)
+
+		return {
+			message:
+				'You successfully registered. Please, check your email to confirm your account.'
+		}
 	}
 
 	public async login(req: Request, dto: LoginDto) {
@@ -57,6 +64,13 @@ export class AuthService {
 		if (!isValidPassword) {
 			throw new UnauthorizedException(
 				'Invalid email address or password. Try again.'
+			)
+		}
+
+		if (!user.isVerified) {
+			await this.emailConfirmationService.sendVerificationToken(user)
+			throw new UnauthorizedException(
+				'Your account is not verified. Please, check your email to confirm your account.'
 			)
 		}
 
@@ -130,7 +144,7 @@ export class AuthService {
 		})
 	}
 
-	private async saveSession(req: Request, user: User) {
+	public async saveSession(req: Request, user: User) {
 		return new Promise((resolve, reject) => {
 			req.session.userId = user.id
 

@@ -6,7 +6,7 @@ import { isDev } from '@/libs/common/utils/is-dev.util'
 export const getMailerConfig = async (
 	configService: ConfigService
 ): Promise<MailerOptions> => ({
-	transports: {
+	transport: {
 		host: configService.getOrThrow<string>('MAIL_HOST'),
 		port: configService.getOrThrow<number>('MAIL_PORT'),
 		secure: !isDev(configService),
