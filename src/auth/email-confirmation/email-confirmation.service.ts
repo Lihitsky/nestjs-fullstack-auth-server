@@ -28,7 +28,7 @@ export class EmailConfirmationService {
 	) {}
 
 	public async newVerification(req: Request, dto: ConfirmationDto) {
-		const existingToken = await this.prismaService.token.findUnique({
+		const existingToken = await this.prismaService.token.findFirst({
 			where: {
 				token: dto.token,
 				type: TokenType.VERIFICATION
@@ -61,7 +61,7 @@ export class EmailConfirmationService {
 
 		await this.prismaService.user.update({
 			where: {
-				id: existingToken.id
+				id: existingUser.id
 			},
 			data: {
 				isVerified: true
