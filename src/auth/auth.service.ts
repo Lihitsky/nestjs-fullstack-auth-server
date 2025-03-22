@@ -17,6 +17,7 @@ import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { EmailConfirmationService } from './email-confirmation/email-confirmation.service'
 import { ProviderService } from './provider/provider.service'
+import { TwoFactorAuthService } from './two-factor-auth/two-factor-auth.service'
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,8 @@ export class AuthService {
 		private readonly userService: UserService,
 		private readonly configService: ConfigService,
 		private readonly providerService: ProviderService,
-		private readonly emailConfirmationService: EmailConfirmationService
+		private readonly emailConfirmationService: EmailConfirmationService,
+		private readonly twoFactorAuthService: TwoFactorAuthService
 	) {}
 
 	public async register(req: Request, dto: RegisterDto) {
@@ -71,6 +73,21 @@ export class AuthService {
 			await this.emailConfirmationService.sendVerificationToken(user)
 			throw new UnauthorizedException(
 				'Your account is not verified. Please, check your email to confirm your account.'
+			)
+		}
+
+		if (user.isTwoFactorEnabled) {
+			if (!dto.code) {
+				await this.twoFactorAuthService.sendTwoFactorToken(user.email)
+
+				return {
+					message: 'Two-factor token has been sent to your email.'
+				}
+			}
+
+			await this.twoFactorAuthService.validateTwoFactorToken(
+				user.email,
+				dto.code
 			)
 		}
 
