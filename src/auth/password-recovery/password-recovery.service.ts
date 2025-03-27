@@ -115,7 +115,7 @@ export class PasswordRecoveryService {
 				email,
 				token,
 				expiresIn,
-				type: TokenType.VERIFICATION
+				type: TokenType.PASSWORD_RESET
 			}
 		})
 
