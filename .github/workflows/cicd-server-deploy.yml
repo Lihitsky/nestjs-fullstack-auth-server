@@ -34,4 +34,4 @@ jobs:
             - name: Restart Docker Compose
               run: |
                   sudo docker compose -f ./docker-compose.yml pull
-                  sudo docker compose -f ./docker-compose.yml up -d
+                  sudo docker compose -f ./docker-compose.yml --env-file /home/ubuntu/actions-runner/.env.prod up -d
