@@ -31,5 +31,5 @@ jobs:
               run: sudo docker rm -f nest_api || true
             - name: Restart Docker Compose
               run: |
-                  sudo docker compose -f ./nestjs-fullstack-auth-server/docker-compose.yml pull
-                  sudo docker compose -f ./nestjs-fullstack-auth-server/docker-compose.yml up -d
+                  sudo docker compose -f ./docker-compose.yml pull
+                  sudo docker compose -f ./docker-compose.yml up -d
