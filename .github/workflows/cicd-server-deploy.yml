@@ -29,5 +29,7 @@ jobs:
               run: sudo docker pull arturlihitskiy/nest_api:latest
             - name: Delete old container
               run: sudo docker rm -f nest_api || true
-            - name: Run new container
-              run: sudo docker run -d --name nest_api -p 4000:4000 arturlihitskiy/nest_api:latest
+            - name: Restart Docker Compose
+              run: |
+                  sudo docker-compose -f ./home/apps/server/docker-compose.yml pull
+                  sudo docker-compose -f ./home/apps/server/docker-compose.yml up -d
